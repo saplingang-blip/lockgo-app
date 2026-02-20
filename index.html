@@ -3,236 +3,250 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lock&Go 5.0</title>
+<title>Lock&Go</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;}
-
 body{
-height:100vh;
-background:radial-gradient(circle at 20% 10%, #9333ea 0%, #1e1b4b 45%, #0a0f1f 100%);
+margin:0;
+font-family:-apple-system;
+background:radial-gradient(circle at 20% 10%,#9333ea 0%,#1e1b4b 50%,#0a0f1f 100%);
 color:white;
-overflow:hidden;
 }
 
-/* PARTICLE BACKGROUND */
-canvas{
-position:fixed;
-top:0;left:0;
-z-index:-1;
-}
+.screen{display:none;padding:20px;}
+.active{display:block;}
 
-/* SCREEN */
-.screen{
-position:absolute;
-width:100%;
-height:100%;
-padding:25px;
-transition:.4s ease;
-opacity:0;
-transform:translateX(40px);
-overflow-y:auto;
-}
-
-.screen.active{
-opacity:1;
-transform:translateX(0);
-}
-
-/* HERO */
-.hero{text-align:center;margin-bottom:20px;}
-.hero h1{
-font-size:34px;
-font-weight:800;
-background:linear-gradient(90deg,#c084fc,#6366f1,#a855f7);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-text-shadow:0 0 40px rgba(168,85,247,0.8);
-}
-.hero p{opacity:.8;}
-
-/* CARD */
 .card{
-background:rgba(255,255,255,0.05);
-backdrop-filter:blur(20px);
+background:rgba(255,255,255,.07);
 padding:20px;
-border-radius:25px;
-margin-bottom:20px;
-border:1px solid rgba(255,255,255,0.1);
-box-shadow:0 15px 40px rgba(0,0,0,.6);
+border-radius:20px;
+margin-bottom:15px;
 }
 
-/* BUTTON */
 .button{
-background:linear-gradient(135deg,#7c3aed,#6366f1);
-padding:15px;
-border:none;
-border-radius:20px;
 width:100%;
-font-size:16px;
+padding:14px;
+border:none;
+border-radius:15px;
+margin-top:10px;
+background:linear-gradient(135deg,#7c3aed,#6366f1);
 color:white;
 font-weight:600;
 cursor:pointer;
-margin-top:10px;
 }
 
 .button.secondary{
-background:rgba(255,255,255,0.08);
-border:1px solid rgba(255,255,255,0.1);
+background:rgba(255,255,255,.1);
 }
 
-/* SOS */
 .sos{
-width:150px;height:150px;border-radius:50%;
-background:radial-gradient(circle,#ff4d6d,#9f1239);
-display:flex;justify-content:center;align-items:center;
-margin:25px auto;font-size:22px;font-weight:700;
-box-shadow:0 0 60px rgba(255,0,80,.8);
-animation:pulse 2s infinite;cursor:pointer;
+width:150px;
+height:150px;
+border-radius:50%;
+background:radial-gradient(circle,#ff2d55,#7f1d1d);
+display:flex;
+align-items:center;
+justify-content:center;
+margin:30px auto;
+font-size:22px;
+cursor:pointer;
+animation:pulse 2s infinite;
 }
+
 @keyframes pulse{
-0%{box-shadow:0 0 20px rgba(255,0,80,.4);}
-50%{box-shadow:0 0 80px rgba(255,0,80,1);}
-100%{box-shadow:0 0 20px rgba(255,0,80,.4);}
+0%{box-shadow:0 0 20px rgba(255,0,80,.4)}
+50%{box-shadow:0 0 70px rgba(255,0,80,1)}
+100%{box-shadow:0 0 20px rgba(255,0,80,.4)}
 }
 
-/* NAV */
 .nav{
-position:fixed;bottom:0;width:100%;height:75px;
-background:rgba(20,0,40,0.9);
-backdrop-filter:blur(10px);
-display:flex;justify-content:space-around;align-items:center;
-border-top:1px solid rgba(255,255,255,0.1);
+position:fixed;
+bottom:0;
+width:100%;
+height:60px;
+background:#140028;
+display:flex;
+justify-content:space-around;
+align-items:center;
 }
+
 .nav button{
-background:none;border:none;color:#c4b5fd;font-size:13px;cursor:pointer;
-}
-.nav button.active{color:white;font-weight:600;}
-
-/* FACE ID ANIMATION */
-.face-scan{
-width:120px;height:120px;
-border:3px solid #a855f7;
-border-radius:20px;
-margin:20px auto;
-position:relative;
-animation:scan 2s linear infinite;
-}
-@keyframes scan{
-0%{box-shadow:0 0 10px #a855f7;}
-50%{box-shadow:0 0 40px #a855f7;}
-100%{box-shadow:0 0 10px #a855f7;}
+background:none;
+border:none;
+color:#c4b5fd;
+font-size:14px;
+cursor:pointer;
 }
 
-/* GRAPH */
-.bar{
-height:8px;
-background:#a855f7;
-margin:6px 0;
-border-radius:4px;
+.nav button.active{color:white;}
+
+.notification{
+position:fixed;
+top:20px;
+left:50%;
+transform:translateX(-50%);
+background:#111827;
+padding:12px 20px;
+border-radius:12px;
+opacity:0;
+transition:.3s;
 }
+
+.notification.show{opacity:1;}
 </style>
 </head>
+
 <body>
 
-<canvas id="particles"></canvas>
+<div class="notification" id="notif"></div>
+
+<!-- LOGIN -->
+<div class="screen active" id="login">
+<h2>Lock&Go</h2>
+<div class="card">
+<input id="nameInput" placeholder="Enter your name" style="width:100%;padding:10px;margin-bottom:10px;">
+<button class="button" id="startBtn">Start</button>
+</div>
+</div>
 
 <!-- HOME -->
-<div class="screen active" id="home">
-<div class="hero">
-<h1>Lock&Go</h1>
-<p>is your security</p>
-</div>
+<div class="screen" id="home">
+<h2 id="greeting"></h2>
 
 <div class="card">
-<p>🔒 Status: <span id="lockStatus">Locked</span></p>
-<p>📶 Bluetooth: Connected</p>
-<p>🔋 Battery: 82%</p>
+<p>🔒 Status: <span id="status">Locked</span></p>
+<p>📶 Bluetooth: <span id="bt">Connected</span></p>
+<p>🔋 Battery: <span id="battery">82</span>%</p>
+<p>💳 NFC Card: Active</p>
 
-<button class="button" onclick="faceID()">Unlock with FaceID</button>
-<button class="button secondary" onclick="showScreen(event,'gps')">Open Map</button>
-<button class="button secondary" onclick="showScreen(event,'activity')">View Activity</button>
+<button class="button" id="unlockFace">Unlock with FaceID</button>
+<button class="button secondary" id="unlockCard">Unlock with Card</button>
+<button class="button secondary" id="lockBtn">Lock Bike</button>
+<button class="button secondary" id="mapBtn">Open Map</button>
+<button class="button secondary" id="activityBtn">View Activity</button>
+<button class="button secondary" id="alarmBtn">Toggle Alarm</button>
 </div>
 
-<div class="sos" onclick="alert('🚨 SOS Activated')">SOS</div>
+<div class="sos" id="sosBtn">SOS</div>
 </div>
 
 <!-- GPS -->
 <div class="screen" id="gps">
-<h2>Live Location</h2>
-<div id="map" style="height:220px;border-radius:20px;"></div>
+<h3>Live GPS</h3>
+<div id="map" style="height:300px;border-radius:20px;"></div>
 </div>
 
 <!-- ACTIVITY -->
 <div class="screen" id="activity">
-<h2>Activity Graph</h2>
-<div class="card">
-<div class="bar" style="width:60%"></div>
-<div class="bar" style="width:40%"></div>
-<div class="bar" style="width:75%"></div>
-<div class="bar" style="width:30%"></div>
-</div>
+<h3>Activity Log</h3>
+<div class="card" id="logBox"></div>
 </div>
 
-<!-- NAV -->
 <div class="nav">
-<button onclick="showScreen(event,'home')" class="active">Home</button>
-<button onclick="showScreen(event,'gps')">GPS</button>
-<button onclick="showScreen(event,'activity')">Activity</button>
+<button id="navHome">Home</button>
+<button id="navGPS">GPS</button>
+<button id="navActivity">Activity</button>
 </div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-function showScreen(e,id){
+
+let isLocked = true;
+let alarmActive = false;
+let battery = 82;
+
+function showScreen(id){
 document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
 document.getElementById(id).classList.add('active');
-document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
-if(e)e.target.classList.add('active');
 }
 
-function faceID(){
-let card=document.querySelector('.card');
-let scan=document.createElement('div');
-scan.className='face-scan';
-card.appendChild(scan);
-setTimeout(()=>{
-document.getElementById("lockStatus").innerText="Unlocked";
-scan.remove();
-alert("🔓 FaceID Success!");
-},2000);
+function notify(text){
+const n=document.getElementById('notif');
+n.innerText=text;
+n.classList.add('show');
+setTimeout(()=>n.classList.remove('show'),2500);
 }
+
+function addLog(text){
+let log=document.createElement("p");
+log.innerText=new Date().toLocaleTimeString()+" - "+text;
+document.getElementById("logBox").prepend(log);
+}
+
+document.getElementById("startBtn").onclick=()=>{
+let name=document.getElementById("nameInput").value;
+if(name==="") name="User";
+document.getElementById("greeting").innerText="Hello, "+name+" 👋";
+showScreen("home");
+};
+
+document.getElementById("unlockFace").onclick=()=>{
+if(!isLocked){ notify("Already unlocked"); return; }
+notify("Scanning FaceID...");
+setTimeout(()=>{
+isLocked=false;
+document.getElementById("status").innerText="Unlocked";
+addLog("Unlocked with FaceID");
+notify("Bike unlocked");
+},1500);
+};
+
+document.getElementById("unlockCard").onclick=()=>{
+if(!isLocked){ notify("Already unlocked"); return; }
+isLocked=false;
+document.getElementById("status").innerText="Unlocked";
+addLog("Unlocked with NFC Card");
+notify("Card accepted");
+};
+
+document.getElementById("lockBtn").onclick=()=>{
+isLocked=true;
+document.getElementById("status").innerText="Locked";
+addLog("Bike locked");
+notify("Bike locked");
+};
+
+document.getElementById("alarmBtn").onclick=()=>{
+alarmActive=!alarmActive;
+notify(alarmActive?"Alarm activated":"Alarm deactivated");
+addLog("Alarm "+(alarmActive?"ON":"OFF"));
+};
+
+document.getElementById("mapBtn").onclick=()=>{
+showScreen("gps");
+};
+
+document.getElementById("activityBtn").onclick=()=>{
+showScreen("activity");
+};
+
+document.getElementById("sosBtn").onclick=()=>{
+notify("🚨 Emergency sent!");
+addLog("Emergency SOS triggered");
+document.body.style.background="#7f1d1d";
+setTimeout(()=>document.body.style.background="",1000);
+};
+
+document.getElementById("navHome").onclick=()=>showScreen("home");
+document.getElementById("navGPS").onclick=()=>showScreen("gps");
+document.getElementById("navActivity").onclick=()=>showScreen("activity");
 
 /* MAP */
-const map = L.map('map').setView([52.52,13.405],13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-attribution:'© OpenStreetMap'
-}).addTo(map);
+let map=L.map('map').setView([52.52,13.405],13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 L.marker([52.52,13.405]).addTo(map);
 
-/* PARTICLES */
-const canvas=document.getElementById("particles");
-const ctx=canvas.getContext("2d");
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
-let particles=[];
-for(let i=0;i<60;i++){
-particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*2+1});
+/* Battery drain simulation */
+setInterval(()=>{
+if(battery>0 && !isLocked){
+battery--;
+document.getElementById("battery").innerText=battery;
 }
-function draw(){
-ctx.clearRect(0,0,canvas.width,canvas.height);
-ctx.fillStyle="rgba(168,85,247,0.6)";
-particles.forEach(p=>{
-ctx.beginPath();
-ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-ctx.fill();
-p.y+=0.3;
-if(p.y>canvas.height)p.y=0;
-});
-requestAnimationFrame(draw);
-}
-draw();
+},5000);
+
 </script>
 
 </body>
